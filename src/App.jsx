@@ -1,6 +1,8 @@
-import React, {useState} from "react";
+import React, {useState, useEffect} from "react";
 import {AiOutlinePlus} from 'react-icons/ai'
 import Todo from './Todo';
+import {db} from './firebase';
+import {query, collection, onSnapshot} from "firebase/firestore";
 
 const style = {
   bg: `h-screen w-screen p-4 bg-gradient-to-r from-[#2F80ED] to-[#1CB5E0]`,
@@ -14,9 +16,23 @@ const style = {
 
 function App() {
   // States
-  const [todos, setTodos] = useState(['Learn React', 'Grind Leetcode'])
+  const [todos, setTodos] = useState([])
 
   // create todo
+  // useEffect is a react hook
+  useEffect(() => {
+    const q = query(collection(db, 'todo')) // path for db
+    // unsubscribe takes a snapshot of db so we can render
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      let todoArr = []
+      querySnapshot.forEach((doc) => {
+        todoArr.push({...doc.data(), id: doc.id})
+      });
+      setTodos(todoArr) // set to our state (setTodos) after the snapshot
+    })
+    return () => unsubscribe() // unsubscribe after
+  }, []) // a dependecy array is passed to prevent a memory leak
+
   // Read todo from firebase
   // update todo
   // delete todo
